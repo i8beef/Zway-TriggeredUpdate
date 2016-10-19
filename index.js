@@ -1,4 +1,4 @@
-/*** IfThen Z-Way HA module *******************************************
+/*** TriggeredUpdate Z-Way HA module *******************************************
 
 Version: 2.0.5
 (c) Z-Wave.Me, 2014
@@ -12,21 +12,21 @@ Description:
 // --- Class definition, inheritance and setup
 // ----------------------------------------------------------------------------
 
-function IfThen (id, controller) {
+function TriggeredUpdate (id, controller) {
     // Call superconstructor first (AutomationModule)
-    IfThen.super_.call(this, id, controller);
+    TriggeredUpdate.super_.call(this, id, controller);
 }
 
-inherits(IfThen, AutomationModule);
+inherits(TriggeredUpdate, AutomationModule);
 
-_module = IfThen;
+_module = TriggeredUpdate;
 
 // ----------------------------------------------------------------------------
 // --- Module instance initialized
 // ----------------------------------------------------------------------------
 
-IfThen.prototype.init = function (config) {
-    IfThen.super_.prototype.init.call(this, config);
+TriggeredUpdate.prototype.init = function (config) {
+    TriggeredUpdate.super_.prototype.init.call(this, config);
 
     var self = this,
         ifElement = self.config.sourceDevice[self.config.sourceDevice.filterIf];
@@ -83,13 +83,13 @@ IfThen.prototype.init = function (config) {
     }
 };
 
-IfThen.prototype.stop = function () {
+TriggeredUpdate.prototype.stop = function () {
     var self = this;
     
     // remove event listener
     self.controller.devices.off(self.config.sourceDevice[self.config.sourceDevice.filterIf].device,'change:metrics:level', self.handlerLevel);
 
-    IfThen.super_.prototype.stop.call(this);
+    TriggeredUpdate.super_.prototype.stop.call(this);
 };
 
 // ----------------------------------------------------------------------------
