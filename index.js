@@ -1,9 +1,9 @@
-/*** TriggeredUpdate Z-Way HA module *******************************************
+/*** IfThen Z-Way HA module *******************************************
 
-Version: 1.0.0
-(c) Michael Hallock, 2016
+Version: 2.0.5
+(c) Z-Wave.Me, 2014
 -----------------------------------------------------------------------------
-Author: Michael Hallock
+Author: Niels Roche <nir@zwave.eu>
 Description:
     Bind actions on one device to other devices or scenes
 ******************************************************************************/
@@ -12,72 +12,65 @@ Description:
 // --- Class definition, inheritance and setup
 // ----------------------------------------------------------------------------
 
-function TriggeredUpdate (id, controller) {
+function IfThen (id, controller) {
     // Call superconstructor first (AutomationModule)
-    TriggeredUpdate.super_.call(this, id, controller);
+    IfThen.super_.call(this, id, controller);
 }
 
-inherits(TriggeredUpdate, AutomationModule);
+inherits(IfThen, AutomationModule);
 
-_module = TriggeredUpdate;
+_module = IfThen;
 
 // ----------------------------------------------------------------------------
 // --- Module instance initialized
 // ----------------------------------------------------------------------------
 
-TriggeredUpdate.prototype.init = function (config) {
-    TriggeredUpdate.super_.prototype.init.call(this, config);
+IfThen.prototype.init = function (config) {
+    IfThen.super_.prototype.init.call(this, config);
 
     var self = this,
         ifElement = self.config.sourceDevice[self.config.sourceDevice.filterIf];
 
     this.handlerLevel = function (sDev) {
         var that = self,
-            value = sDev.get("metrics:level"),
-            operator = ifElement.operator,
-            ifLevel = ifElement.status === 'level' && ifElement.level? ifElement.level : ifElement.status,
-            check = true;
+            value = sDev.get("metrics:level");
 
-        if (operator && ifLevel) {
-            switch (operator) {
-                case '>':
-                    check = value > ifLevel;
-                    break;
-                case '=':
-                    check = value === ifLevel;
-                    break;
-                case '<':
-                    check = value < ifLevel;
-                    break;
-            }
-        }
-
-        if(check || value === ifElement.status || sDev.get('deviceType') === 'toggleButton'){
+        if(value === ifElement.status || sDev.get('deviceType') === 'toggleButton'){
             self.config.targets.forEach(function(el) {
                 var type = el.filterThen,
                     id = el[type].target,
-                    lvl = el[type].status === 'level' && el[type].level? el[type].level : el[type].status,
-                    vDev = that.controller.devices.get(id),
-                    // compare old and new level to avoid unneccessary updates
-                    compareValues = function(valOld,valNew){
-                        var vO = _.isNaN(parseFloat(valOld))? valOld : parseFloat(valOld),
-                            vN = _.isNaN(parseFloat(valNew))? valNew : parseFloat(valNew);
-
-                        return vO !== vN;
-                    },
-                    set = compareValues(vDev.get("metrics:level"), lvl);
+                    action = el[type].action,
+                    lvl = el[type].status,
+                    delay = el[type].delay,
+                    vDev = that.controller.devices.get(id);
                 
-                if (vDev && set) {
-                    if (vDev.get("deviceType") === type && (type === "switchMultilevel" || type === "thermostat")) {
-                        if (lvl === 'on' || lvl === 'off'){
-                            vDev.performCommand(lvl);
+                if (vDev) {
+                    if (vDev.get("deviceType") === type && type === "switchMultilevel") {
+                        if (action === "delay") {
+                            if (delay === 0) {
+                                vDev.performCommand("update");
+                            } else {
+                                setTimeout(function() { vDev.performCommand("update"); }, (delay * 1000));
+                            }
                         } else {
                             vDev.performCommand("exact", { level: lvl });
                         }
                     } else if (vDev.get("deviceType") === "toggleButton" && type === "scene") {
-                        vDev.performCommand("on");
+                        if (delay !== 0) {
+                            setTimeout(function() { vDev.performCommand("on"); }, (delay * 1000));
+                        } else {
+                            vDev.performCommand("on");
+                        }
                     } else if (vDev.get("deviceType") === type) {
-                        vDev.performCommand(lvl);
+                        if (action === "delay") {
+                            if (delay === 0) {
+                                vDev.performCommand("update");
+                            } else {
+                                setTimeout(function() { vDev.performCommand("update"); }, (delay * 1000));
+                            }
+                        } else {
+                            vDev.performCommand(lvl);
+                        }
                     }
                 }
             });
@@ -90,13 +83,13 @@ TriggeredUpdate.prototype.init = function (config) {
     }
 };
 
-TriggeredUpdate.prototype.stop = function () {
+IfThen.prototype.stop = function () {
     var self = this;
     
     // remove event listener
     self.controller.devices.off(self.config.sourceDevice[self.config.sourceDevice.filterIf].device,'change:metrics:level', self.handlerLevel);
 
-    TriggeredUpdate.super_.prototype.stop.call(this);
+    IfThen.super_.prototype.stop.call(this);
 };
 
 // ----------------------------------------------------------------------------

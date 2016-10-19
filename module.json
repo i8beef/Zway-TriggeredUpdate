@@ -26,30 +26,8 @@
 				"properties": {
 					"filterIf": {
 						"type":"string",
-						"enum": ["scene","switchControl","switchBinary","switchMultilevel","sensorBinary", "sensorMultilevel"],
+						"enum": ["scene","switchControl","switchBinary","switchMultilevel","sensorBinary"],
 						"required": true
-					},
-					"sensorMultilevel": {
-						"type": "object",
-						"dependencies":"filterIf",
-						"properties": {
-							"device": {
-								"field": "enum",
-								"datasource": "namespaces",
-								"enum": "namespaces:devices_sensorMultilevel:deviceId",
-								"required": true
-							},
-							"operator": {
-								"type": "string",
-								"enum": ["=",">","<"],
-								"required": true
-							},
-							"status": {
-								"type": "integer",
-								"minimum": 0,
-								"required": true
-							}
-						}
 					},
 					"switchBinary": {
 						"type": "object",
@@ -92,20 +70,7 @@
 							},
 							"status": {
 								"type": "integer",
-								"enum": ["off", "on", "level"],
-								"required": true
-							},
-							"operator": {
-								"dependencies":"status",
-								"type": "string",
-								"enum": ["=",">","<"],
-								"required": true
-							},
-							"level": {
-								"dependencies":"status",
-								"type": "integer",
-								"minimum": 0,
-								"maximum": 99,
+								"enum": ["off", "on"],
 								"required": true
 							}
 						}
@@ -122,20 +87,7 @@
 							},
 							"status": {
 								"type": "integer",
-								"enum": ["off", "on","level"],
-								"required": true
-							},
-							"operator": {
-								"dependencies":"status",
-								"type": "string",
-								"enum": ["=",">","<"],
-								"required": true
-							},
-							"level": {
-								"dependencies":"status",
-								"type": "integer",
-								"minimum": 0,
-								"maximum": 99,
+								"enum": ["off", "on"],
 								"required": true
 							}
 						}
@@ -166,7 +118,7 @@
 					"properties": {
 						"filterThen": {
 							"type":"string",
-							"enum": ["switchBinary","switchMultilevel","doorlock","scene","thermostat"],
+							"enum": ["switchBinary","switchMultilevel","doorlock","scene"],
 							"required": true
 						},
 						"switchBinary": {
@@ -179,9 +131,22 @@
 									"enum": "namespaces:devices_switchBinary:deviceId",
 									"required": true
 								},
+								"action": {
+									"type":"string",
+									"enum": ["status", "delay"],
+									"required": true
+								},
 								"status": {
 									"type": "integer",
+									"dependencies":"action",
 									"enum": ["off", "on"],
+									"required": true
+								},
+								"delay": {
+									"type": "integer",
+									"dependencies":"action",
+									"minimum": 0,
+									"maximum": 60,
 									"required": true
 								}
 							}
@@ -196,16 +161,23 @@
 									"enum": "namespaces:devices_switchMultilevel:deviceId",
 									"required": true
 								},
-								"status": {
-									"type": "integer",
-									"enum": ["off", "on","level"],
+								"action": {
+									"type":"string",
+									"enum": ["status", "delay"],
 									"required": true
 								},
-								"level": {
-									"dependencies":"status",
+								"status": {
 									"type": "integer",
+									"dependencies":"action",
 									"minimum": 0,
 									"maximum": 99,
+									"required": true
+								},
+								"delay": {
+									"type": "integer",
+									"dependencies":"action",
+									"minimum": 0,
+									"maximum": 60,
 									"required": true
 								}
 							}
@@ -220,9 +192,22 @@
 									"enum": "namespaces:devices_doorlock:deviceId",
 									"required": true
 								},
+								"action": {
+									"type":"string",
+									"enum": ["status", "delay"],
+									"required": true
+								},
 								"status": {
 									"type": "integer",
+									"dependencies":"action",
 									"enum": ["close", "open"],
+									"required": true
+								},
+								"delay": {
+									"type": "integer",
+									"dependencies":"action",
+									"minimum": 0,
+									"maximum": 60,
 									"required": true
 								}
 							}
@@ -236,67 +221,12 @@
 									"datasource": "namespaces",
 									"enum": "namespaces:devices_toggleButton:deviceId",
 									"required": true
-								}
-							}
-						},
-						"thermostat":{
-							"type": "object",
-							"dependencies":"filterThen",
-							"properties": {
-								"target": {
-									"type":"string",
-									"datasource": "namespaces",
-									"enum": "namespaces:devices_thermostat:deviceId",
-									"required": true
 								},
-								"status": {
-									"enum": [
-										5,
-										5.5,
-										6,
-										6.5,
-										7,
-										7.5,
-										8,
-										8.5,
-										9,
-										9.5,
-										10,
-										10.5,
-										11,
-										11.5,
-										12,
-										12.5,
-										13,
-										13.5,
-										14,
-										14.5,
-										15,
-										15.5,
-										16,
-										16.5,
-										17,
-										17.5,
-										18,
-										18.5,
-										19,
-										19.5,
-										20,
-										20.5,
-										21,
-										21.5,
-										22,
-										22.5,
-										23,
-										23.5,
-										24,
-										24.5,
-										25,
-										25.5,
-										26,
-										26.5,
-										27
-									]
+								"delay": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 60,
+									"required": true
 								}
 							}
 						}
@@ -315,28 +245,7 @@
 						"removeDefaultNone": false,
 						"noneLabel": "__l_choose__",
 						"label":"__l_filter__",
-						"optionLabels": ["__toggleButton__","__switchControl__","__switchBinary__","__switchMultilevel__","__sensorBinary__","__sensorMultilevel__"]
-					},
-					"sensorMultilevel": {
-						"dependencies": {
-							"filterIf": "sensorMultilevel"
-						},
-						"fields": {
-							"device": {
-								"type": "select",
-								"removeDefaultNone": false,
-								"noneLabel": "__l_choose_dev__",
-								"datasource": "namespaces",
-								"field": "optionLabels",
-								"optionLabels": "namespaces:devices_sensorMultilevel:deviceName"
-							},
-							"operator": {
-								"type": "select"
-							},
-							"status": {
-								"label": "__l_level__"
-							}
-						}
+						"optionLabels": ["__toggleButton__","__switchControl__","__switchBinary__","__switchMultilevel__","__sensorBinary__"]
 					},
 					"switchBinary": {
 						"dependencies": {
@@ -386,20 +295,7 @@
 								"optionLabels": "namespaces:devices_switchControl:deviceName"
 							},
 							"status": {
-								"type":"select",
-								"label": "__l_level__",
-								"optionLabels": ["__off__", "__on__","__level__"]
-							},
-							"operator": {
-								"dependencies": {
-									"status": ["level"]
-								},
-								"type": "select"
-							},
-							"level": {
-								"dependencies": {
-									"status": ["level"]
-								}
+								"optionLabels": ["__off__", "__on__"]
 							}
 						}
 					},
@@ -417,20 +313,7 @@
 								"optionLabels": "namespaces:devices_switchMultilevel:deviceName"
 							},
 							"status": {
-								"type":"select",
-								"label": "__l_level__",
-								"optionLabels": ["__off__", "__on__","__level__"]
-							},
-							"operator": {
-								"dependencies": {
-									"status": ["level"]
-								},
-								"type": "select"
-							},
-							"level": {
-								"dependencies": {
-									"status": ["level"]
-								}
+								"optionLabels": ["__off__", "__on__"]
 							}
 						}
 					},
@@ -464,7 +347,7 @@
 								"removeDefaultNone": false,
 								"noneLabel": "__l_choose__",
 								"label":"__l_filter__",
-								"optionLabels": ["__switchBinary__","__switchMultilevel__","__doorlock__","__l_scene__","__thermostat__"]
+								"optionLabels": ["__switchBinary__","__switchMultilevel__","__doorlock__","__l_scene__"]
 							},
 							"switchBinary": {
 								"dependencies": {
@@ -480,7 +363,23 @@
 										"field": "optionLabels",
 										"optionLabels": "namespaces:devices_switchBinary:deviceName"
 									},
+									"action": {
+										"type": "select",
+										"removeDefaultNone": false,
+										"noneLabel": "__l_choose__",
+										"label":"__l_action__",
+										"optionLabels": ["__actionSetStatus__","__actionDelayUpdate__"]
+									},
+									"delay": {
+										"dependencies": {
+											"action": "delay"
+										},
+										"label": "__l_delay__"
+									},
 									"status": {
+										"dependencies": {
+											"action": "status"
+										},
 										"label": "__l_action__",
 										"optionLabels": ["__off__", "__on__"]
 									}
@@ -500,15 +399,24 @@
 										"field": "optionLabels",
 										"optionLabels": "namespaces:devices_switchMultilevel:deviceName"
 									},
-									"status": {
-										"type":"select",
-										"label": "__l_level__",
-										"optionLabels": ["__off__", "__on__","__level__"]
+									"action": {
+										"type": "select",
+										"removeDefaultNone": false,
+										"noneLabel": "__l_choose__",
+										"label":"__l_action__",
+										"optionLabels": ["__actionSetStatus__","__actionDelayUpdate__"]
 									},
-									"level": {
+									"delay": {
 										"dependencies": {
-											"status": ["level"]
-										}
+											"action": "delay"
+										},
+										"label": "__l_delay__"
+									},
+									"status": {
+										"dependencies": {
+											"action": "status"
+										},
+										"label": "__l_level__"
 									}
 								}
 							},
@@ -526,7 +434,23 @@
 										"field": "optionLabels",
 										"optionLabels": "namespaces:devices_doorlock:deviceName"
 									},
+									"action": {
+										"type": "select",
+										"removeDefaultNone": false,
+										"noneLabel": "__l_choose__",
+										"label":"__l_action__",
+										"optionLabels": ["__actionSetStatus__","__actionDelayUpdate__"]
+									},
+									"delay": {
+										"dependencies": {
+											"action": "delay"
+										},
+										"label": "__l_delay__"
+									},
 									"status": {
+										"dependencies": {
+											"action": "status"
+										},
 										"label": "__l_action__",
 										"optionLabels": ["__close__", "__open__"]
 									}
@@ -546,26 +470,9 @@
 										"datasource": "namespaces",
 										"field": "optionLabels",
 										"optionLabels": "namespaces:devices_toggleButton:deviceName"
-									}
-								}
-							},
-							"thermostat": {
-								"dependencies": {
-									"filterThen": "thermostat"
-								},
-								"fields":{
-									"target" :{
-										"type": "select",
-										"removeDefaultNone": false,
-										"noneLabel": "__l_choose_dev__",
-										"label": "__l_target_device__",
-										"datasource": "namespaces",
-										"field": "optionLabels",
-										"optionLabels": "namespaces:devices_thermostat:deviceName"
 									},
-									"status": {
-										"type":"select",
-										"label": "__l_level__"
+									"delay": {
+										"label": "__l_delay__"
 									}
 								}
 							}
